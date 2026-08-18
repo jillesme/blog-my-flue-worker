@@ -10,7 +10,10 @@
 	},
 	"dependencies": {
 		"@flue/runtime": "^2.0.3",
-		"hono": "^4.7.0"
+		"@flue/slack": "^2.0.3",
+		"@slack/web-api": "^8.0.0",
+		"hono": "4.12.32",
+		"valibot": "^1.4.2"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.39.2",

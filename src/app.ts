@@ -1,6 +1,7 @@
 import { createAgentRouter } from '@flue/runtime/routing';
 import { Hono } from 'hono';
 import { Assistant } from './agents/assistant.ts';
+import { channel as slack } from './channels/slack.ts';
 
 const app = new Hono();
 
@@ -11,5 +12,6 @@ const app = new Hono();
 //     -H 'content-type: application/json' \
 //     -d '{"kind":"user","body":"Generate a random number."}'
 app.route('/agents/assistant', createAgentRouter(Assistant));
+app.route('/channels/slack', slack.route());
 
 export default app;
