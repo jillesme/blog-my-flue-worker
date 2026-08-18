@@ -18,15 +18,8 @@ Cloudflare Workers AI requires the Cloudflare runtime, so start the local Worker
 npm run dev
 ```
 
-Then send a message:
-
-```sh
-curl -X POST http://localhost:5173/agents/assistant/my-first-chat \
-  -H 'content-type: application/json' \
-  -d '{"kind":"user","body":"Generate a random number."}'
-```
-
-The Assistant agent is served at `http://localhost:5173/agents/assistant`.
+Slack Events API requests are served at `POST /channels/slack/events`. Mention
+the bot in Slack to start or continue a thread-bound agent conversation.
 
 ## Deploy
 

@@ -33,11 +33,10 @@ export const channel = createSlackChannel({
 				};
 				await dispatch(Assistant, {
 					id: channel.instanceId(thread),
+					idempotencyKey: payload.event_id,
 					initialData: {
 						channelId: thread.channelId,
 						threadTs: thread.threadTs,
-						startedBy: event.user,
-						startedAt: new Date(Number(event.ts) * 1000).toISOString(),
 					},
 					message: {
 						kind: 'signal',
@@ -45,7 +44,7 @@ export const channel = createSlackChannel({
 						body: event.text,
 						attributes: {
 							eventId: payload.event_id,
-							messageTs: event.ts
+							messageTs: event.ts,
 						},
 					},
 				});
@@ -90,8 +89,8 @@ export function replyInThread(ref: { channelId: string; threadTs: string }) {
 			});
 			return {
 				output: {
-					...(result.channel === undefined ? {} : { channel: result.channel }),
-					...(result.ts === undefined ? {} : { ts: result.ts }),
+					channel: result.channel ?? null,
+					ts: result.ts ?? null,
 				},
 			};
 		},
