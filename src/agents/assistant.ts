@@ -1,7 +1,15 @@
 'use agent';
-import { useInitialData, useModel, useTool } from '@flue/runtime';
+import {
+	useAgentFinish,
+	useAgentStart,
+	useDelivery,
+	useInitialData,
+	useModel,
+	usePersistentState,
+	useTool,
+} from '@flue/runtime';
 import * as v from 'valibot';
-import { replyInThread } from '../channels/slack.ts';
+import { addEyesReaction, removeEyesReaction, replyInThread } from '../channels/slack.ts';
 
 const initialDataSchema = v.optional(
 	v.object({
@@ -15,6 +23,31 @@ const initialDataSchema = v.optional(
 export function Assistant() {
 	useModel('cloudflare/@cf/google/gemma-4-26b-a4b-it');
 	const data = useInitialData<v.InferOutput<typeof initialDataSchema>>();
+	const delivery = useDelivery();
+	const messageTs = delivery.kind === 'signal' ? delivery.attributes?.messageTs : undefined;
+	const [pendingReactionTimestamps, setPendingReactionTimestamps] = usePersistentState<string[]>(
+		'pendingSlackReactionTimestamps',
+		[],
+	);
+
+	useAgentStart(async () => {
+		if (!data || !messageTs) return;
+		await addEyesReaction({ channel: data.channelId, timestamp: messageTs });
+		setPendingReactionTimestamps((timestamps) =>
+			timestamps.includes(messageTs) ? timestamps : [...timestamps, messageTs],
+		);
+	});
+
+	useAgentFinish(async () => {
+		if (!data || pendingReactionTimestamps.length === 0) return;
+		await Promise.all(
+			pendingReactionTimestamps.map((timestamp) =>
+				removeEyesReaction({ channel: data.channelId, timestamp }),
+			),
+		);
+		setPendingReactionTimestamps([]);
+	});
+
 	if (data) useTool(replyInThread(data));
 	useTool({
 		name: 'generate_random_number',

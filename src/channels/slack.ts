@@ -1,7 +1,7 @@
 // flue-blueprint: channel/slack@1
 import { defineTool, dispatch } from '@flue/runtime';
 import { createSlackChannel } from '@flue/slack';
-import { WebClient } from '@slack/web-api';
+import { type ReactionsAddArguments, WebAPIPlatformError, WebClient } from '@slack/web-api';
 import * as v from 'valibot';
 import { Assistant } from '../agents/assistant.ts';
 
@@ -43,7 +43,10 @@ export const channel = createSlackChannel({
 						kind: 'signal',
 						type: 'slack.app_mention',
 						body: event.text,
-						attributes: { eventId: payload.event_id },
+						attributes: {
+							eventId: payload.event_id,
+							messageTs: event.ts
+						},
 					},
 				});
 				return;
@@ -53,6 +56,26 @@ export const channel = createSlackChannel({
 		}
 	},
 });
+
+type SlackMessageRef = Pick<ReactionsAddArguments, 'channel' | 'timestamp'>;
+
+export async function addEyesReaction(ref: SlackMessageRef) {
+	try {
+		await client.reactions.add({ ...ref, name: 'eyes' });
+	} catch (error) {
+		if (error instanceof WebAPIPlatformError && error.data.error === 'already_reacted') return;
+		throw error;
+	}
+}
+
+export async function removeEyesReaction(ref: SlackMessageRef) {
+	try {
+		await client.reactions.remove({ ...ref, name: 'eyes' });
+	} catch (error) {
+		if (error instanceof WebAPIPlatformError && error.data.error === 'no_reaction') return;
+		throw error;
+	}
+}
 
 export function replyInThread(ref: { channelId: string; threadTs: string }) {
 	return defineTool({
