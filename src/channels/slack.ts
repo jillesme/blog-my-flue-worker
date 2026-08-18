@@ -5,7 +5,16 @@ import { WebClient } from '@slack/web-api';
 import * as v from 'valibot';
 import { Assistant } from '../agents/assistant.ts';
 
-export const client = new WebClient(process.env.SLACK_BOT_TOKEN);
+// Slack's WebClient defaults to an unbound global fetch and redirect: 'error'.
+// Cloudflare requires the global receiver and supports only 'follow'/'manual'.
+// A manual redirect still reaches Slack's non-200 handling without following it.
+export const client = new WebClient(process.env.SLACK_BOT_TOKEN, {
+	fetch: (url, init) =>
+		globalThis.fetch(url, {
+			...init,
+			redirect: init?.redirect === 'error' ? 'manual' : init?.redirect,
+		}),
+});
 
 export const channel = createSlackChannel({
 	signingSecret: process.env.SLACK_SIGNING_SECRET!,
