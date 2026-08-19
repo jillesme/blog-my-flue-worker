@@ -2,6 +2,8 @@
 
 A [Flue](https://flueframework.com) agent project.
 
+Companion code for [Creating a Slack Flue agent](https://jilles.me/creating-a-slack-flue-agent/).
+
 ## Setup
 
 ```sh
